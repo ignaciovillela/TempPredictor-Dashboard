@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Predicción de Temperatura</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background-color: #2c3e50;
+            color: white;
+            width: 250px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: fixed;
+            height: 100%;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h1 {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .sidebar nav a, .sidebar nav button {
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            width: 100%;
+            text-align: center;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #34495e;
+            font-size: 1em;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .sidebar nav a:hover, .sidebar nav button:hover {
+            background-color: #1abc9c;
+            transform: scale(1.05);
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 40px;
+            width: calc(100% - 250px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-content h2 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .card {
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1060px;
+        }
+
+        .card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .initial-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #2c3e50;
+        }
+
+        .initial-message h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .graph-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .graph-group .card {
+            margin: 10px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* Ratio 16:9 */
+        }
+
+        .map-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                padding: 20px;
+                width: calc(100% - 200px);
+            }
+
+            .sidebar h1 {
+                font-size: 1.2em;
+            }
+
+            .main-content h2 {
+                font-size: 1.5em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 150px;
+            }
+
+            .main-content {
+                margin-left: 150px;
+                padding: 10px;
+                width: calc(100% - 150px);
+            }
+
+            .sidebar h1 {
+                font-size: 1em;
+            }
+
+            .main-content h2 {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>Predicción de Temperatura</h1>
+        <nav>
+            <button onclick="showAllSections()">Mostrar Todos</button>
+            <a href="#group1" onclick="showGroup('group1')">Características y Datos</a>
+            <a href="#group2" onclick="showGroup('group2')">Predicciones de Modelos</a>
+            <a href="#group3" onclick="showGroup('group3')">Mapa</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <div id="initial-message" class="initial-message">
+            <h2>Por favor, selecciona una opción del menú para ver el gráfico.</h2>
+        </div>
+        <div class="graph-group" id="group1" style="display: none;">
+            <section id="feature-importance" class="card">
+                <h2>Importancia de Características</h2>
+                <img src="data:image/png;base64,{{ plot1 }}" alt="Importancia de Características">
+            </section>
+            <section id="database-data" class="card">
+                <h2>Datos de la Base de Datos</h2>
+                <img src="data:image/png;base64,{{ plot2 }}" alt="Datos de la Base de Datos">
+            </section>
+        </div>
+        <div class="graph-group" id="group2" style="display: none;">
+            <section id="linear-regression" class="card">
+                <h2>Linear Regression</h2>
+                <img src="data:image/png;base64,{{ plot_linear_regression }}" alt="Linear Regression">
+            </section>
+            <section id="random-forest" class="card">
+                <h2>Random Forest</h2>
+                <img src="data:image/png;base64,{{ plot_random_forest }}" alt="Random Forest">
+            </section>
+            <section id="svr" class="card">
+                <h2>Support Vector Machines</h2>
+                <img src="data:image/png;base64,{{ plot_svr }}" alt="Support Vector Machines">
+            </section>
+        </div>
+        <div class="graph-group card" id="group3" style="display: none; width: 100%;">
+            <section class="map-container">
+                <iframe src="map" frameborder="0"></iframe>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        function showGroup(groupId) {
+            document.getElementById('initial-message').style.display = 'none';
+            const groups = document.querySelectorAll('.main-content .graph-group');
+            groups.forEach(group => {
+                if (group.id === groupId) {
+                    group.style.display = 'flex';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+            window.location.hash = groupId;
+        }
+
+        function showAllSections() {
+            document.getElementById('initial-message').style.display = 'none';
+            const groups = document.querySelectorAll('.main-content .graph-group');
+            groups.forEach(group => {
+                group.style.display = 'flex';
+            });
+            window.location.hash = 'all';
+        }
+
+        function handleHashChange() {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'all') {
+                showAllSections();
+            } else if (hash) {
+                showGroup(hash);
+            } else {
+                document.getElementById('initial-message').style.display = 'flex';
+                const groups = document.querySelectorAll('.main-content .graph-group');
+                groups.forEach(group => {
+                    group.style.display = 'none';
+                });
+            }
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+        window.addEventListener('DOMContentLoaded', handleHashChange);
+    </script>
+</body>
+</html>
